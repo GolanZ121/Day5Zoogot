@@ -1,136 +1,66 @@
 /*------------------------------------------------------
-* Filename: queens.c
+* Filename: queens00.c
 * Description: solves the 8 queens problem
 * Author: Golan Ziv & Amittai Kalisky [:-)]
 -------------------------------------------*/
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "utils.h"
 
-#define SIZE 8
+void rec(Point queens_points[QUEENS_AMOUNT], 
+    size_t queens_left, // amount of queens left to place
+    size_t row, // current row to place a queen (in recursion we try every column in that row)
+    size_t size, // size of the board
+    size_t *solutions, // a pointer to in to accumilate the number of successes
+    Point result[QUEENS_AMOUNT]) // array to save postions of a solution to some solution
+    {
+    size_t next_queen_idx = QUEENS_AMOUNT - queens_left;
 
-int fill_spots(int mat[SIZE][SIZE], int x, int y, int change[SIZE][SIZE]);
-int rec(int mat[SIZE][SIZE], int r, int q);
+    if(queens_left > QUEENS_AMOUNT) return; // Invalid situation, just leave
 
-/*------------------------------------------------------
-* Function Name - fill_spots
-*
-* Function Purpose - feel matrix in queen spots or aims with given mode
-*
-* Parameters –  [IN mat - matrix of integers] 
-*               [IN x - row index] 
-*               [IN y - column index] 
-*               [IN change - int matrix to track what change, inorder to remove later] 
-*
-* Return Values - 0 if successfull, 1 for for failure
-*
-* Author - Golan Ziv [:-)] & Amittai Kalisky
--------------------------------------------------------*/
-int fill_spots(int mat[SIZE][SIZE], int x, int y, int change[SIZE][SIZE]){
-    if(!mat) return -1;
-
-    mat[x][y] = 2;
-    change[x][y] = 1;
-
-    for(int i = 0; i < SIZE ; i++){
-        if(!mat[i][y]) {
-            change[i][y] = 1;
-            mat[i][y] = 1;
-        }if(!mat[x][i]) {
-            change[x][i] = 1;
-            mat[x][i] = 1;
-        }
+    if(queens_left == 0){
+        if((*solutions) < UINT_MAX) // make sure to not over flow (cap solutions count)
+            (*solutions)++; // accumilate succuss
+        for(int q = 0 ; q < QUEENS_AMOUNT; q++)
+            result[q] = queens_points[q]; // save to result to outside variable
+        return;
     }
 
-    for(int i = 1; x - i >= 0 && y - i >= 0; i++){
-        if(!mat[x - i][y - i]){ 
-            mat[x - i][y - i] = 1; 
-            change[x - i][y - i] = 1; 
+    if(row == size)
+        return;
+
+    for(size_t col = 0; col < size; col++){
+        Point curr = build_point(row, col, 1);
+
+        if(!are_qs_killing(queens_points, curr)){ // if can be placed, try to place and make a recursive call
+            queens_points[next_queen_idx] = curr;
+
+            rec(queens_points, queens_left - 1, row + 1, size, solutions, result);
+
+            queens_points[next_queen_idx].placed = 0; // we need to pick up the queen pieace to not interfere the next calls
         }
     }
-    for(int i = 1; x + i < SIZE && y + i < SIZE; i++){
-        if(!mat[x + i][y + i]){ 
-            mat[x + i][y + i] = 1;
-            change[x + i][y + i] = 1;
-        }
-    }
-    for(int i = 1; x + i < SIZE && y - i >= 0; i++){
-        if(!mat[x + i][y - i]){ 
-            mat[x + i][y - i] = 1;
-            change[x + i][y - i] = 1;
-        }
-    }
-    for(int i = 1; x - i >= 0 && y + i < SIZE; i++){
-        if(!mat[x - i][y + i]){ 
-            mat[x - i][y + i] = 1;
-            change[x - i][y + i] = 1;
-        }
-    }
-    return 0;
 }
 
 
-/*------------------------------------------------------
-* Function Name - rec
-*
-* Function Purpose - recursivley calculate the 8 queen problem
-*
-* Parameters –  [IN mat - matrix showing 0 for free spot, 1 for danger, 2 for placed queen] 
-*		        [IN r  – row number]
-*		        [IN q – number of queens we try to place]
-*
-* Return Values - 0 for success, -1 for failure
-*
-* Author - Golan Ziv & Amittai Kalisky [:-)] 
--------------------------------------------------------*/
-int rec(int mat[SIZE][SIZE], int r, int q){
-    if(q == 0)
-        return 0;
+int main(){
+    Point queens[QUEENS_AMOUNT] = {0}; // init empty Point struct
+    Point result[QUEENS_AMOUNT] = {0};
+    size_t size; // size of board to be taken from use
+    size_t solutions = 0; 
 
-    if(r == SIZE)
-        return -1;
-
-    for(int col = 0; col < SIZE; col++){
-        if(!mat[r][col]){
-            int change[SIZE][SIZE] = {0};
-            fill_spots(mat, r, col, change);
-            if(rec(mat, r+1, q-1) == 0)
-                return 0;
-            
-            // reset queen placement.
-            for(int i = 0; i < SIZE; i++)
-                for(int j = 0; j < SIZE; j++)
-                    if(change[i][j]) mat[i][j] = 0;
-        }
-    }
-    return -1;
-} 
-
-
-/*------------------------------------------------------
-* Function Name - main
-*
-* Function Purpose - makes a matrix and runs the recurssion, then prints the final configuration.
-*
-* Return Values - 0 for success, -1 for failure
-*
-* Author - Golan Ziv & Amittai Kalisky [:-)] 
--------------------------------------------------------*/
-int main() {
-    int mat[SIZE][SIZE];
-
-    for (int i = 0; i < SIZE; i++){
-        for (int j = 0; j < SIZE; j++){
-            mat[i][j] = 0;
-        }
-    }
-
-    if(!rec(mat, 0, 8) == 0){
-        printf("\nSolution NOT found");
+    printf("Enter board size: ");
+    if(scanf("%zu", &size) != 1){
+        printf("Bad Input!");
         return 1;
     }
     
-    printf("\nSolution found!");
-    
+    rec(queens, QUEENS_AMOUNT, 0, size, &solutions, result);
+    if(solutions){
+        printf("%d Solutions found! Here is One:\n", solutions);
+        print_mat(result, size);
+    }else
+        printf("Solution NOT found!\n");
+
     return 0;
-}    
+
+}
