@@ -11,8 +11,6 @@
 
 int fill_spots(int mat[SIZE][SIZE], int x, int y, int change[SIZE][SIZE]);
 int rec(int mat[SIZE][SIZE], int r, int q);
-void print_mat(int mat[SIZE][SIZE]);
-
 
 /*------------------------------------------------------
 * Function Name - fill_spots
@@ -108,25 +106,6 @@ int rec(int mat[SIZE][SIZE], int r, int q){
     return -1;
 } 
 
-/*------------------------------------------------------
-* Function Name - print_mat 
-*
-* Function Purpose - print an int matrix in a formmated 
-*
-* Parameters –  [IN mat - an int matrix] 
-*
-* Return Values - void
-*
-* Author - Golan Ziv & Amittai Kalisky [:-)] 
--------------------------------------------------------*/
-void print_mat(int mat[SIZE][SIZE]){
-   for (int i = 0; i < SIZE; i++){
-        for (int j = 0; j < SIZE; j++){
-            printf("%2d", mat[i][j]);
-        }
-        printf("\n");
-    }
-}
 
 /*------------------------------------------------------
 * Function Name - main
